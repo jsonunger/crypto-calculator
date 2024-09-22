@@ -1,36 +1,36 @@
 <script setup lang="ts">
   import { useIMask } from 'vue-imask';
-  import BaseInput from './BaseInput.vue';
+  import type { FactoryOpts } from 'imask';
+  import InputWrapper from './InputWrapper.vue';
+  import { watch } from 'vue';
 
-  const { inputValue } = defineProps<{
+  const { inputValue, maskOptions } = defineProps<{
     id: string;
     label: string;
     inputValue: number | undefined;
     disabled?: boolean;
+    maskOptions: FactoryOpts;
   }>();
   defineEmits<{
     'input-change': [event: Event];
   }>();
 
-  const { el } = useIMask({
-    mask: '$ money',
-    lazy: false,
-    blocks: {
-      money: {
-        mask: Number,
-        min: 0,
-        normalizeZeros: false,
-        radix: '.',
-        scale: 2,
-        thousandsSeparator: ',',
-        value: inputValue ?? '',
-      },
+  const { el, typed, masked } = useIMask(maskOptions);
+
+  watch(
+    () => inputValue,
+    (newInputValue) => {
+      if (newInputValue) {
+        typed.value = newInputValue;
+      } else {
+        masked.value = '';
+      }
     },
-  });
+  );
 </script>
 
 <template>
-  <BaseInput :id :label>
+  <InputWrapper :id :label>
     <input
       :id
       ref="el"
@@ -39,7 +39,7 @@
       :disabled
       @change="$emit('input-change', $event)"
     />
-  </BaseInput>
+  </InputWrapper>
 </template>
 
 <style scoped></style>
